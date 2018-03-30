@@ -6,7 +6,7 @@
   
 	OS: All code bases, tests and debugging were completed on x64 Windows 7 Professional
 	Dll: Injectable DLL (Veriato_DLL)
-  Server: Veriato_Test.cpp
+	Server: Veriato_Test.cpp
 
 	Test Deliverable:
 
