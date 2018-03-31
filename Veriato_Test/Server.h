@@ -4,6 +4,7 @@
 #pragma once
 
 #include <winsock2.h>
+#include "Network.h"
 
 #define LOCAL_PORT 55555
 #define BUFSIZE 65545 // 1 Kilobyte
@@ -18,8 +19,8 @@ typedef struct tag_packet{
 
 // Server Functionality
 DWORD WINAPI Server(_In_ LPVOID lpParameter);
-SOCKET wait_for_connections(SOCKET descriptor);
-int service_connections(SOCKET client);
+SOCKET Accept_New_Connections(SOCKET descriptor);
+int Service_Connections(SERVER_MODEL* Server);
 int Interceptor(SOCKET client, int iReadySocketHandles);
 int Recv(_In_ SOCKET sock, _In_ char* pTrashCan, _In_ int* iTrashLength);
 

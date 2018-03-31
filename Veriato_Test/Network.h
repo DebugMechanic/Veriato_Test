@@ -6,19 +6,19 @@
 #include <winsock2.h>
 
 
-class Server_Model
+class SERVER_MODEL
 {	
 	public:
 		
-		Server_Model();  // Constructor
-		~Server_Model(); // Destructor
+		SERVER_MODEL();  // Constructor
+		~SERVER_MODEL(); // Destructor
 		
 		BOOL Init_Winsock();
 		SOCKET WSAAPI CreateListenSocket(const char *ip, u_short port);
 		int ListenToSocket();
 				
 		// Getters
-		SOCKET GetSocket();
+		SOCKET GetListenSocket();
 		bool GetIsConnected();
 		
 		// Setters		

@@ -5,9 +5,8 @@
 
 
 DWORD WINAPI Server(_In_ LPVOID lpParameter)
-{
-	SOCKET Listen, Client;
-	Server_Model* Server = new Server_Model();
+{	
+	SERVER_MODEL* Server = new SERVER_MODEL();	
 
 	/**************
 	* Setup Server
@@ -17,28 +16,18 @@ DWORD WINAPI Server(_In_ LPVOID lpParameter)
 	Server->ListenToSocket();
 	Server->SetListenNonBlocking(1);
 
-	while (true)
-	{
-		/**************************************
-		* Listen For New Incoming Connections
-		***************************************/		
-		Listen = Server->GetSocket();
-		Client = wait_for_connections(Listen);
-		if (Client != INVALID_SOCKET)
-		{
-			/*********************
-			* Service Connections
-			**********************/
-			service_connections(Client);
-		}
-	}
-
+	/*********************
+	* Service Connections
+	**********************/
+	Service_Connections(Server);
+	
 	delete Server;
+	Log("\n[Server]: Quit Successfully...\n");
 	return 0; // :) Good
 }
 
 
-SOCKET wait_for_connections(SOCKET descriptor)
+SOCKET Accept_New_Connections(SOCKET descriptor)
 {
 	SOCKET newsock;	
 	DWORD dwLastError = 0;	
@@ -61,9 +50,7 @@ SOCKET wait_for_connections(SOCKET descriptor)
 			}			
 		}
 		return INVALID_SOCKET; // :( Error
-	}
-		
-	Log("[wait_for_connections]: Client Connection Found !!!\n");
+	}	
 
 	if (SOCKET_ERROR == ioctlsocket(newsock, FIONBIO, &block)) {
 		Log("[wait_for_connections]: ioctlsocket(FIONBIO) Error %d\n", WSAGetLastError());
@@ -73,35 +60,35 @@ SOCKET wait_for_connections(SOCKET descriptor)
 }
 
 
-int service_connections(SOCKET client)
+int Service_Connections(SERVER_MODEL* Server)
 {
 	DWORD dwLastError = 0;
-	int iReadySocketHandles = 0;
-	SOCKET maxfd;		
-	fd_set ReadSet;	
+	int iReadyHandles = 0, iMaxfd = 0, iNewfd, iResult = 0;
+	SOCKET Listener;
+	fd_set ReadSet, MasterSet;
+	int iSetIndex = 0;
 	
-	// Check Our Client Socket
-	if (client == INVALID_SOCKET) {
-		return -1; // :( Error
-	}
+	// Zero Sets
+	memset(&ReadSet, 0x0, sizeof(fd_set));
+	memset(&MasterSet, 0x0, sizeof(fd_set));
 
-	// Socket Descriptors
-	maxfd = client;
-	maxfd++;
-		
+	// Get Listen Socket
+	Listener = Server->GetListenSocket();
+
+	// Add listener to MasterSet
+	FD_SET(Listener, &MasterSet);
+	iMaxfd = (int)Listener; // Track File Descriptors
+	
+	// Main Server Loop	
 	while (true)
 	{	
-		/******************************
-		* Check Which Socket To Read
-		*******************************/
-		FD_ZERO(&ReadSet);		
-		FD_SET(client, &ReadSet);
+		ReadSet = MasterSet; // Copy MasterSet
 						
-		/*****************************************
-		* Select Total Number Of Sockets To Read
-		******************************************/
-		iReadySocketHandles = select(maxfd + 1, &ReadSet, NULL, NULL, NULL);
-		if (iReadySocketHandles < 0) 
+		/****************************************
+		* Select Total Number Of Sockets To Read.
+		*****************************************/
+		iReadyHandles = select(iMaxfd + 1, &ReadSet, NULL, NULL, NULL);
+		if (iReadyHandles < 0)
 		{
 			dwLastError = WSAGetLastError();
 			switch (dwLastError) 
@@ -109,37 +96,70 @@ int service_connections(SOCKET client)
 				// We Can Add Other Error Cases Later As They Arise. 
 				case SOCKET_ERROR: Log("[service_connections]: [select] Socket Error: [%d]\n", dwLastError); break;				
 			}
-			return -1; // :( Error, Exit on 10038. Normal Processing. Return Control To Server().
+			return -1; // :( Error
 		} 
 		
-		/******************************
-		* Read Client's Data and Store
-		*******************************/		
-		if (FD_ISSET(client, &ReadSet))
-		{			
-			Interceptor(client, iReadySocketHandles);			
-		} 		
-	}
+		/**********************************************************
+		* Processing Connections, Looking For Data To Read or Send.
+		***********************************************************/
+		for (iSetIndex = 0; iSetIndex <= iMaxfd; iSetIndex++)
+		{
+			if (FD_ISSET(iSetIndex, &ReadSet)) // Socket In Read State
+			{
+				if (iSetIndex == Listener) // Check Socket For Listen State
+				{
+					/***************************
+					* Accepting New Connections
+					****************************/
+					iNewfd = (int)Accept_New_Connections(Listener);
+					if (iNewfd == INVALID_SOCKET) {
+						Log("[Service_Connections]: Waiting For New Clients Failed...\n");					
+					
+					} else {
+						FD_SET(iNewfd, &MasterSet); // Add New Client To MasterSet.
+						if (iNewfd > iMaxfd) {
+							iMaxfd = iNewfd; // Keep Track Of New Connections.
+						}
+						Log("[Service_Connections]: New Client Connection Found !!!\n");
+					}
+				
+				} else {
+					/******************************
+					* Read Client's Data and Store
+					*******************************/
+					iResult = Interceptor(iSetIndex, iReadyHandles);
+					if (iResult == -1){
+						Log("[Service_Connections]: Error On Socket %d\n", iSetIndex);
+						closesocket(iSetIndex);
+						FD_CLR(iSetIndex, &MasterSet);
+					} else {
+						Log("[Service_Connections]: Done Processing Socket %d\n", iSetIndex);
+						closesocket(iSetIndex);
+						FD_CLR(iSetIndex, &MasterSet);
+					}
+				} // Check For Listener
+			} // Read State
+		} // For Loop, Index Search
+	} // Main Server Loop
 
 	return 0; // :) Good
 }
 
 
-int Interceptor(SOCKET client, int iReadySocketHandles)
+int Interceptor(SOCKET client, int iReadyHandles)
 {
 	char* pTrashCan = new char[BUFSIZE](); // Value-Initialisation, Was Introduced In C++03.
 	int iCheck = 0, iDataLen = 0;
 	PPACKET Package = NULL;	
 	DWORD size = 0;
 
-	iReadySocketHandles--;
+	iReadyHandles--;
 
 	if (client != INVALID_SOCKET)
 	{
 		// Receive As Much Junk As Possible
 		iCheck = Recv(client, pTrashCan, &iDataLen);
-		if (iCheck == -1) {
-			closesocket(client); // Done Processing Client.		
+		if (iCheck == -1) {				
 			return -1; // :( Connection Error. Also For No Data.
 		}
 
@@ -162,8 +182,7 @@ int Interceptor(SOCKET client, int iReadySocketHandles)
 				
 		delete[] pTrashCan;
 		pTrashCan = NULL;
-		Package = NULL;
-		closesocket(client); // Done Processing Client.
+		Package = NULL;		
 		return 0; // :) Good
 	}
 		

@@ -2,7 +2,7 @@
 #include "Log.h"
 
 
-Server_Model::Server_Model()
+SERVER_MODEL::SERVER_MODEL()
 {
 	// Constructor
 	ZeroMemory(&this->ListenAddress, sizeof(this->ListenAddress));
@@ -11,14 +11,14 @@ Server_Model::Server_Model()
 }
 
 
-Server_Model::~Server_Model()
+SERVER_MODEL::~SERVER_MODEL()
 {
 	// Destructor
 	WSACleanup();
 }
 
 
-BOOL Server_Model::Init_Winsock()
+BOOL SERVER_MODEL::Init_Winsock()
 {
 	int nResult = NO_ERROR;
 
@@ -33,20 +33,20 @@ BOOL Server_Model::Init_Winsock()
 }
 
 
-bool Server_Model::GetIsConnected()
+bool SERVER_MODEL::GetIsConnected()
 {
 	return this->bIsConnected;
 }
 
 
-void Server_Model::SetIsConnected(bool connected)
+void SERVER_MODEL::SetIsConnected(bool connected)
 {
 	this->bIsConnected = connected;
 	return;
 }
 
 
-int Server_Model::SetListenNonBlocking(ULONG block)
+int SERVER_MODEL::SetListenNonBlocking(ULONG block)
 {
 	// Set the socket to non-blocking mode so the server will not block.
 	if ( SOCKET_ERROR == ioctlsocket(this->ListenSocket, FIONBIO, &block ) ) {
@@ -58,13 +58,13 @@ int Server_Model::SetListenNonBlocking(ULONG block)
 }
 
 
-SOCKET Server_Model::GetSocket()
+SOCKET SERVER_MODEL::GetListenSocket()
 {
 	return this->ListenSocket;
 }
 
 
-SOCKET WSAAPI Server_Model::CreateListenSocket(const char *ip, u_short port)
+SOCKET WSAAPI SERVER_MODEL::CreateListenSocket(const char *ip, u_short port)
 {
 	// Create Socket
 	this->ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -93,7 +93,7 @@ SOCKET WSAAPI Server_Model::CreateListenSocket(const char *ip, u_short port)
 }
 
 
-int Server_Model::ListenToSocket()
+int SERVER_MODEL::ListenToSocket()
 {
 	int result = SOCKET_ERROR;
 	if ( SOCKET_ERROR == listen( this->ListenSocket, SOMAXCONN ) ) {
