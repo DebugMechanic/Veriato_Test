@@ -27,39 +27,6 @@ DWORD WINAPI Server(_In_ LPVOID lpParameter)
 }
 
 
-SOCKET Accept_New_Connections(SOCKET descriptor)
-{
-	SOCKET newsock;	
-	DWORD dwLastError = 0;	
-	ULONG block  = 1;
-
-	newsock = accept(descriptor, NULL, NULL);
-	if (newsock == INVALID_SOCKET)
-	{
-		dwLastError = WSAGetLastError();
-		if (dwLastError != WSAEWOULDBLOCK)
-		{
-			switch (dwLastError) 
-			{
-				case WSAECONNABORTED: Log("[wait_for_connections]: [accept] Connection Aborted.\n");  break;
-				case WSAECONNRESET:	  Log("[wait_for_connections]: [accept] Connection Reset.\n");    break;
-				case WSAESHUTDOWN:    Log("[wait_for_connections]: [accept] Connection Shutdown.\n"); break;
-				case WSAENOTSOCK:     Log("[wait_for_connections]: [accept] Not A Socket.\n");        break;
-				case WSAEFAULT:       Log("[wait_for_connections]: Invalid Pointer Address.\n");      break;
-				default: Log("[wait_for_connections]: [accept] Failed, Error #: %d!\n", dwLastError); break;
-			}			
-		}
-		return INVALID_SOCKET; // :( Error
-	}	
-
-	if (SOCKET_ERROR == ioctlsocket(newsock, FIONBIO, &block)) {
-		Log("[wait_for_connections]: ioctlsocket(FIONBIO) Error %d\n", WSAGetLastError());
-	}
-
-	return newsock; // :) Good
-}
-
-
 int Service_Connections(SERVER_MODEL* Server)
 {
 	DWORD dwLastError = 0;
@@ -94,7 +61,7 @@ int Service_Connections(SERVER_MODEL* Server)
 			switch (dwLastError) 
 			{
 				// We Can Add Other Error Cases Later As They Arise. 
-				case SOCKET_ERROR: Log("[service_connections]: [select] Socket Error: [%d]\n", dwLastError); break;				
+				case SOCKET_ERROR: Log("[Service_Connections]: [select] Socket Error: [%d]\n", dwLastError); break;				
 			}
 			return -1; // :( Error
 		} 
@@ -113,14 +80,14 @@ int Service_Connections(SERVER_MODEL* Server)
 					****************************/
 					iNewfd = (int)Accept_New_Connections(Listener);
 					if (iNewfd == INVALID_SOCKET) {
-						Log("[Service_Connections]: Waiting For New Clients Failed...\n");					
+						Log("[Service_Connections]: Waiting For New Clients, Failed...\n");					
 					
 					} else {
 						FD_SET(iNewfd, &MasterSet); // Add New Client To MasterSet.
 						if (iNewfd > iMaxfd) {
 							iMaxfd = iNewfd; // Keep Track Of New Connections.
 						}
-						Log("[Service_Connections]: New Client Connection Found !!!\n");
+						Log("[Service_Connections]: New Client Connection, Socket %d !!!\n", iNewfd);
 					}
 				
 				} else {
@@ -129,7 +96,7 @@ int Service_Connections(SERVER_MODEL* Server)
 					*******************************/
 					iResult = Interceptor(iSetIndex, iReadyHandles);
 					if (iResult == -1){
-						Log("[Service_Connections]: Error On Socket %d\n", iSetIndex);
+						Log("[Service_Connections]: Error, Socket %d\n", iSetIndex);
 						closesocket(iSetIndex);
 						FD_CLR(iSetIndex, &MasterSet);
 					} else {
@@ -143,6 +110,41 @@ int Service_Connections(SERVER_MODEL* Server)
 	} // Main Server Loop
 
 	return 0; // :) Good
+}
+
+
+SOCKET Accept_New_Connections(SOCKET descriptor)
+{
+	SOCKET newsock;
+	DWORD dwLastError = 0;
+	ULONG block = 1;
+
+	// Accept New Clients
+	newsock = accept(descriptor, NULL, NULL);
+	if (newsock == INVALID_SOCKET)
+	{
+		dwLastError = WSAGetLastError();
+		if (dwLastError != WSAEWOULDBLOCK)
+		{
+			switch (dwLastError)
+			{
+				case WSAECONNABORTED: Log("[Accept_New_Connections]: [accept] Connection Aborted.\n");  break;
+				case WSAECONNRESET:   Log("[Accept_New_Connections]: [accept] Connection Reset.\n");    break;
+				case WSAESHUTDOWN:    Log("[Accept_New_Connections]: [accept] Connection Shutdown.\n"); break;
+				case WSAENOTSOCK:     Log("[Accept_New_Connections]: [accept] Not A Socket.\n");        break;
+				case WSAEFAULT:       Log("[Accept_New_Connections]: [accept] Invalid Pointer Address.\n");      break;
+				default: Log("[Accept_New_Connections]: [accept] Failed, Error #: %d!\n", dwLastError); break;
+			}
+		}
+		return INVALID_SOCKET; // :( Error
+	}
+
+	// Enable Non-Blocking Mode On New Client
+	if (SOCKET_ERROR == ioctlsocket(newsock, FIONBIO, &block)) {
+		Log("[Accept_New_Connections]: ioctlsocket(FIONBIO) Nonblocking Mode Error %d\n", WSAGetLastError());
+	}
+
+	return newsock; // :) Good
 }
 
 
