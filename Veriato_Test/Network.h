@@ -13,6 +13,7 @@ class Server_Model
 		Server_Model();  // Constructor
 		~Server_Model(); // Destructor
 		
+		BOOL Init_Winsock();
 		SOCKET WSAAPI CreateListenSocket(const char *ip, u_short port);
 		int ListenToSocket();
 				
@@ -26,11 +27,13 @@ class Server_Model
 				
 	private:
 		
+		WSADATA WSA_Data;
+		bool bIsConnected;
+
 		// Listen Socket Information
 		SOCKET ListenSocket;
 		int iListenAddrLen;
-		sockaddr_in ListenAddress;
-		bool bIsConnected;
+		sockaddr_in ListenAddress;		
 };
 
 

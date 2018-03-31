@@ -14,37 +14,30 @@
 		Send this information to a server application that displays the data it receives and stores it on disk.
 */
 
+
 #include <SDKDDKVer.h>
 #include <stdio.h>
-#include <tchar.h>
-#include <conio.h>
 #include <WinSock2.h>
 #include <Windows.h>
-#include <vector>
-#include <TlHelp32.h>
-#include <Psapi.h>
 #include "Log.h"
 #include "Server.h"
 
 
 // Globals
-typedef struct tag_master{
+typedef struct tag_Thread{
 	bool bThreadInUse;
 	DWORD dwThreadID;
 	HANDLE hThread;
-} MASTER;
+	DWORD dwThreadState;
+} THREAD, *PTHREAD;
 
 
-// Prototypes
-int Initialize(WSADATA *wd);
-
-
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
-	MASTER ServerThread;		
-	DWORD dwThreadState = 0;
+	THREAD Master;
+	memset(&Master, 0x0, sizeof(THREAD));
 	
-	/* Clear Log File */
+	/* Clear Log File, Sleeps Allow Changes In SnakeTail */
 	Sleep(2000);
 	ClearLog();
 	Sleep(2000);
@@ -53,16 +46,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	Log("*************************  Veriato Log  *****************************\n");
 	Log("*********************************************************************\n");
 
-	/* Initialize Winsock 2 */
-	WSADATA WSA_Data;
-	Initialize(&WSA_Data);
-		
-	Log("[Main]: Starting Server\n");	
-	ServerThread.hThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)Server, NULL, NULL, &ServerThread.dwThreadID);
-	if (ServerThread.hThread && ServerThread.dwThreadID)
+	Log("[Main]: Starting Server\n");
+	Master.hThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)Server, NULL, NULL, &Master.dwThreadID);
+	if (Master.hThread && Master.dwThreadID)
 	{
-		dwThreadState = WaitForSingleObject(ServerThread.hThread, INFINITE);
-		switch (dwThreadState) {
+		Master.dwThreadState = WaitForSingleObject(Master.hThread, INFINITE);
+		switch (Master.dwThreadState) {
 			case WAIT_FAILED:
 				Log("[Main]: Server Thread Failed...\n"); break;
 			case WAIT_TIMEOUT:
@@ -71,24 +60,8 @@ int _tmain(int argc, _TCHAR* argv[])
 				Log("[Main]: Server Thread Completed...\n"); break;
 		}
 		
-		CloseHandle(ServerThread.hThread);
+		CloseHandle(Master.hThread);
 	}
-	return 0;
-}
-
-
-int Initialize(WSADATA *wd)
-{	
-	int nResult = NO_ERROR;
-	if ((nResult = WSAStartup(MAKEWORD(2, 2), wd)) != NO_ERROR) 
-	{
-		Log("\n\n[Initialize]: WSAStartup Error : %d\n", WSAGetLastError());
-		return 1;
-	
-	} else {
-		Log("[Initialize]: WSAStartup Successful!\n");
-	}
-
 	return 0;
 }
 

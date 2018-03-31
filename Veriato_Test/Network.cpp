@@ -14,6 +14,22 @@ Server_Model::Server_Model()
 Server_Model::~Server_Model()
 {
 	// Destructor
+	WSACleanup();
+}
+
+
+BOOL Server_Model::Init_Winsock()
+{
+	int nResult = NO_ERROR;
+
+	nResult = WSAStartup(MAKEWORD(2, 2), &this->WSA_Data);
+	if (nResult != NO_ERROR) {
+		Log("\n\n[Init_Winsock] WSAStartup Error: %d\n", WSAGetLastError());
+		return 1; // :( Error
+	}
+
+	Log("[Init_Winsock]: WSAStartup Successful!\n");
+	return 0; // :) Good
 }
 
 

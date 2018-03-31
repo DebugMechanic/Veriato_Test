@@ -5,32 +5,35 @@
 
 
 DWORD WINAPI Server(_In_ LPVOID lpParameter)
-{	
-	SOCKET Listen, Client;	
+{
+	SOCKET Listen, Client;
 	Server_Model* Server = new Server_Model();
 
-	/************
-	* ( Server )
-	*************/
+	/**************
+	* Setup Server
+	***************/
+	Server->Init_Winsock();
 	Server->CreateListenSocket("127.0.0.1", LOCAL_PORT);
 	Server->ListenToSocket();
 	Server->SetListenNonBlocking(1);
 
-	while (true) 
+	while (true)
 	{
 		/**************************************
-		* Listen For New Incoming Connections 
+		* Listen For New Incoming Connections
 		***************************************/		
 		Listen = Server->GetSocket();
-		if ((Client = wait_for_connections(Listen)) != INVALID_SOCKET)
-		{			
+		Client = wait_for_connections(Listen);
+		if (Client != INVALID_SOCKET)
+		{
 			/*********************
 			* Service Connections
-			**********************/			
+			**********************/
 			service_connections(Client);
 		}
 	}
 
+	delete Server;
 	return 0; // :) Good
 }
 
