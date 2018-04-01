@@ -128,12 +128,12 @@ SOCKET Accept_New_Connections(SOCKET descriptor)
 		{
 			switch (dwLastError)
 			{
-				case WSAECONNABORTED: Log("[Accept_New_Connections]: [accept] Connection Aborted.\n");  break;
-				case WSAECONNRESET:   Log("[Accept_New_Connections]: [accept] Connection Reset.\n");    break;
-				case WSAESHUTDOWN:    Log("[Accept_New_Connections]: [accept] Connection Shutdown.\n"); break;
-				case WSAENOTSOCK:     Log("[Accept_New_Connections]: [accept] Not A Socket.\n");        break;
-				case WSAEFAULT:       Log("[Accept_New_Connections]: [accept] Invalid Pointer Address.\n");      break;
-				default: Log("[Accept_New_Connections]: [accept] Failed, Error #: %d!\n", dwLastError); break;
+				case WSAECONNABORTED: Log("[Accept_New_Connections]: [accept] Connection Aborted.\n");      break;
+				case WSAECONNRESET:   Log("[Accept_New_Connections]: [accept] Connection Reset.\n");        break;
+				case WSAESHUTDOWN:    Log("[Accept_New_Connections]: [accept] Connection Shutdown.\n");     break;
+				case WSAENOTSOCK:     Log("[Accept_New_Connections]: [accept] Not A Socket.\n");            break;
+				case WSAEFAULT:       Log("[Accept_New_Connections]: [accept] Invalid Pointer Address.\n"); break;
+				default: Log("[Accept_New_Connections]: [accept] Failed, Error #: %d!\n", dwLastError);     break;
 			}
 		}
 		return INVALID_SOCKET; // :( Error
@@ -162,7 +162,7 @@ int Interceptor(SOCKET client, int iReadyHandles)
 		// Receive As Much Junk As Possible
 		iCheck = Recv(client, pTrashCan, &iDataLen);
 		if (iCheck == -1) {				
-			return -1; // :( Connection Error. Also For No Data.
+			return -1; // :( Connection Error.
 		}
 
 		// Assign Buffer To Package
@@ -222,7 +222,7 @@ int Recv(_In_ SOCKET sock, _In_ char* pTrashCan, _In_ int* iTrashLength)
 			switch (iLastError)
 			{
 				case WSAECONNABORTED: Log("[Recv]: Connection Aborted.\n");          break;
-				case WSAECONNRESET:	  Log("[Recv]: Connection Reset.\n");            break;
+				case WSAECONNRESET:   Log("[Recv]: Connection Reset.\n");            break;
 				case WSAESHUTDOWN:    Log("[Recv]: Connection Shutdown.\n");         break;
 				case WSAENOTSOCK:     Log("[Recv]: Not A Socket.\n");                break;
 				default: Log("[Recv]: No Data On Line, Error #: %d!\n", iLastError); break;
