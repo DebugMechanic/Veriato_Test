@@ -21,7 +21,7 @@ typedef struct tag_packet{
 DWORD WINAPI Server(_In_ LPVOID lpParameter);
 SOCKET Accept_New_Connections(SOCKET descriptor);
 int Service_Connections(SERVER_MODEL* Server);
-int Interceptor(SOCKET client, int iReadySocketHandles);
+int Interceptor(SOCKET client);
 int Recv(_In_ SOCKET sock, _In_ char* pTrashCan, _In_ int* iTrashLength);
 
 #endif

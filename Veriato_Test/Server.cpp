@@ -20,9 +20,9 @@ DWORD WINAPI Server(_In_ LPVOID lpParameter)
 	* Service Connections
 	**********************/
 	Service_Connections(Server);
-	
-	delete Server;
+		
 	Log("\n[Server]: Quit Successfully...\n");
+	delete Server;
 	return 0; // :) Good
 }
 
@@ -94,7 +94,7 @@ int Service_Connections(SERVER_MODEL* Server)
 					/******************************
 					* Read Client's Data and Store
 					*******************************/
-					iResult = Interceptor(iSetIndex, iReadyHandles);
+					iResult = Interceptor(iSetIndex);
 					if (iResult == -1){
 						Log("[Service_Connections]: Error, Socket %d\n", iSetIndex);
 						closesocket(iSetIndex);
@@ -128,12 +128,12 @@ SOCKET Accept_New_Connections(SOCKET descriptor)
 		{
 			switch (dwLastError)
 			{
-				case WSAECONNABORTED: Log("[Accept_New_Connections]: [accept] Connection Aborted.\n");      break;
-				case WSAECONNRESET:   Log("[Accept_New_Connections]: [accept] Connection Reset.\n");        break;
-				case WSAESHUTDOWN:    Log("[Accept_New_Connections]: [accept] Connection Shutdown.\n");     break;
-				case WSAENOTSOCK:     Log("[Accept_New_Connections]: [accept] Not A Socket.\n");            break;
-				case WSAEFAULT:       Log("[Accept_New_Connections]: [accept] Invalid Pointer Address.\n"); break;
-				default: Log("[Accept_New_Connections]: [accept] Failed, Error #: %d!\n", dwLastError);     break;
+				case WSAECONNABORTED: Log("[Accept_New_Connections]: Connection Aborted.\n");      break;
+				case WSAECONNRESET:   Log("[Accept_New_Connections]: Connection Reset.\n");        break;
+				case WSAESHUTDOWN:    Log("[Accept_New_Connections]: Connection Shutdown.\n");     break;
+				case WSAENOTSOCK:     Log("[Accept_New_Connections]: Not A Socket.\n");            break;
+				case WSAEFAULT:       Log("[Accept_New_Connections]: Invalid Pointer Address.\n"); break;
+				default: Log("[Accept_New_Connections]: Failed, Error #: %d!\n", dwLastError);     break;
 			}
 		}
 		return INVALID_SOCKET; // :( Error
@@ -148,15 +148,13 @@ SOCKET Accept_New_Connections(SOCKET descriptor)
 }
 
 
-int Interceptor(SOCKET client, int iReadyHandles)
+int Interceptor(SOCKET client)
 {
 	char* pTrashCan = new char[BUFSIZE](); // Value-Initialisation, Was Introduced In C++03.
 	int iCheck = 0, iDataLen = 0;
 	PPACKET Package = NULL;	
 	DWORD size = 0;
-
-	iReadyHandles--;
-
+	
 	if (client != INVALID_SOCKET)
 	{
 		// Receive As Much Junk As Possible
@@ -168,18 +166,18 @@ int Interceptor(SOCKET client, int iReadyHandles)
 		// Assign Buffer To Package
 		Package = (PPACKET)pTrashCan;
 		
+		// Check Location & Store
 		if (strlen(Package->Path) != 0)
-		{
-			// Display & Store Location
-			fprintf_s(stdout, "[%s][%s]   [Interceptor]: Location %s\n", __DATE__, __TIME__, Package->Path);
-			Log("[%s][%s]   [Interceptor]: Location %s\n", __DATE__, __TIME__, Package->Path);
+		{			
+			fprintf_s(stdout, "[%s]--[%s]--[Interceptor]: Location %s\n", __DATE__, __TIME__, Package->Path);
+			Log("[%s]--[%s]--[Interceptor]: Location %s\n", __DATE__, __TIME__, Package->Path);
 		}
 
+		// Check Size & Store
 		if (Package->FileSize.QuadPart != 0)
-		{
-			// Display & Store File Size
-			fprintf_s(stdout, "[%s][%s]   [Interceptor]: File Size is %d Bytes\n", __DATE__, __TIME__, Package->FileSize.QuadPart);
-			Log("[%s][%s]   [Interceptor]: File Size is %d Bytes\n", __DATE__, __TIME__, Package->FileSize.QuadPart);
+		{			
+			fprintf_s(stdout, "[%s]--[%s]--[Interceptor]: File Size is %d Bytes\n", __DATE__, __TIME__, Package->FileSize.QuadPart);
+			Log("[%s]--[%s]--[Interceptor]: File Size is %d Bytes\n", __DATE__, __TIME__, Package->FileSize.QuadPart);
 		}
 				
 		delete[] pTrashCan;
