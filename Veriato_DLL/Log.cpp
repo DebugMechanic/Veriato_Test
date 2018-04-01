@@ -1,6 +1,7 @@
 #include "Log.h"
+
 #include <fstream>
-#include <cstdio>
+
 
 VOID WINAPIV ClearLog()
 {
@@ -31,7 +32,6 @@ VOID WINAPIV Log( CHAR* szFormat, ... )
 		if (fp == NULL)
 			return; 
 
-		//fprintf_s(stdout, "File Pointer: %016llX\n", fp);
 		fprintf(fp, szBuf);
 
 		if (fp != NULL)

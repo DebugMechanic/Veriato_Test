@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+
 VOID WINAPIV ClearLog()
 {
 	FILE *fp;
@@ -10,23 +11,46 @@ VOID WINAPIV ClearLog()
 	return;
 }
 
-VOID WINAPIV Log( CHAR* szFormat, ... )
+
+VOID WINAPIV Log(CHAR* szFormat, ...)
 {
-	FILE *fp;
-	CHAR szBuf[1024]; 
+	FILE *fp = NULL;
+	int len = 0;
+	PCHAR szBuf = NULL;
+	errno_t err;
 
-	memset(szBuf, 0x0, sizeof(szBuf));
+	va_list list;
+	va_start(list, szFormat);
 
-	va_list list; 
-	va_start( list, szFormat );
-	vsprintf_s( szBuf, szFormat, list ); 
-	va_end( list ); 
-		
-	fp = fopen("c://Users//Administrator//Desktop//Veriato_Test.log", "a+");
-	if (fp == NULL)
-		return;
+	len = _vscprintf(szFormat, list) + 1; // doesn't count terminating '\0'
+	szBuf = (PCHAR)calloc(len, sizeof(char));
+	if (szBuf != NULL)
+	{
+		vsprintf_s(szBuf, len, szFormat, list);
 
-	fprintf(fp, szBuf);
-		
-	fclose(fp);
+		fp = fopen("c://Users//Administrator//Desktop//Veriato_Test.log", "a+");
+		if (fp == NULL)
+			return;
+
+		fprintf(fp, szBuf);
+
+		if (fp != NULL)
+		{
+			err = fclose(fp);
+			if (err == 0)
+			{
+				//fprintf_s(stdout, "File Was Closed\n");
+			}
+			else {
+				//fprintf_s(stdout, "File Was Not Closed\n");
+			}
+		}
+
+		if (szBuf != NULL)
+			free(szBuf);
+
+		va_end(list); /*Reset argument list*/
+	}
+
+	return;
 }
