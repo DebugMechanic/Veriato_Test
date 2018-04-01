@@ -1,5 +1,9 @@
 # Interview Test For Veriato:
 
+## Operating Systems Supported:  
+> Windows 7 -- Supported.
+> Windows 10 -- Unsupported.
+
 > Date: 03/22/2018  
 > Author: Debug Mechanic  
 
