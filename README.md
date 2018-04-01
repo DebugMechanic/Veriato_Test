@@ -1,13 +1,14 @@
 # Interview Test For Veriato:
 
+
 ## Operating Systems Supported:  
 > Windows 7 -- Supported.
 > Windows 10 -- Unsupported.
 
-> Date: 03/22/2018  
-> Author: Debug Mechanic  
-
 ## Notes:
+
+Date: 03/22/2018  
+> Author: Debug Mechanic  
 
 OS:  
 > All code bases, unit tests and debugging were completed and compiled on x64 Windows 7 Professional  
