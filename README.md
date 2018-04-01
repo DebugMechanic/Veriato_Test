@@ -5,9 +5,10 @@
 > Windows 7 -- Supported.  
 > Windows 10 -- Unsupported.
 
+
 ## Notes:
 
-Date: 03/22/2018  
+> Date: 03/22/2018  
 > Author: Debug Mechanic  
 
 OS:  
@@ -18,6 +19,7 @@ Dll:
 
 Server:  
 > Veriato_Test.cpp
+
 
 ## Test Deliverable:
 
