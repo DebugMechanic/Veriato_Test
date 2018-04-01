@@ -2,7 +2,7 @@
 
 
 ## Operating Systems Supported:  
-> Windows 7 -- Supported.
+> Windows 7 -- Supported.  
 > Windows 10 -- Unsupported.
 
 ## Notes:
