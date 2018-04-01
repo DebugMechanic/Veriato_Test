@@ -1,7 +1,7 @@
 # Interview Test For Veriato:
 
-> Date: 03/22/2018
-> Author: Debug Mechanic
+> Date: 03/22/2018  
+> Author: Debug Mechanic  
 
 ## Notes:
 
