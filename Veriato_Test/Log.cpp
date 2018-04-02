@@ -54,3 +54,4 @@ VOID WINAPIV Log(CHAR* szFormat, ...)
 
 	return;
 }
+

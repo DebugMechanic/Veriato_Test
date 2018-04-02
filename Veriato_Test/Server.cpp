@@ -36,8 +36,8 @@ int Service_Connections(SERVER_MODEL* Server)
 	int iSetIndex = 0;
 	
 	// Zero Sets
-	memset(&ReadSet, 0x0, sizeof(fd_set));
-	memset(&MasterSet, 0x0, sizeof(fd_set));
+	FD_ZERO(&ReadSet);
+	FD_ZERO(&MasterSet);
 
 	// Get Listen Socket
 	Listener = Server->GetListenSocket();
