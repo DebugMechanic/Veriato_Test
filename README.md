@@ -31,6 +31,4 @@ Send this information to a server application that displays the data it receives
 ```
 
 
-<p align="center">
-  <img src="https://ibb.co/bzH64H" width="350"/> 
-</p>
+![picture]("https://ibb.co/bzH64H")
